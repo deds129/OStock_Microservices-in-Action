@@ -14,7 +14,7 @@ import com.optimagrowth.license.repository.LicenseRepository;
 public class LicenseService {
 
 	@Autowired
-	MessageSource messages;
+	private MessageSource messages;
 
 	@Autowired
 	private LicenseRepository licenseRepository;

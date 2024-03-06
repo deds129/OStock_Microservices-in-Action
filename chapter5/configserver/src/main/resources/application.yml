@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: config-server
+  profiles:
+    active:
+    - native, git
+  cloud:
+    config:
+      server:
+        # Локальная конфигурация: это может быть
+        # classpath или конкретный каталог в файловой системе.
+        native:
+          # Определение конкретной папки в файловой системе
+          search-locations:
+            classpath:/config #equal to src/main/resources/config
+          # Сообщает Spring Cloud Config использовать Git в качестве репозитория
+        git:
+          # Сообщает Spring Cloud Config адрес сервера Git и репозитория
+          uri: https://github.com/deds129/ostock-config.git
+          # Сообщает Spring Cloud Config путь в Git для поиска конфигурационных файлов
+          search-paths: licensingservice
+          try-master-branch: true
+server:
+  port: 8071
+  
+encrypt:
+  key: IMSYMMETRIC #replace with env val 
+
+
+#Enable all Spring Boot Actuator endpoints.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

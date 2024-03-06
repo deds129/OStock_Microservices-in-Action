@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: licensing-service # Имя службы лицензий, чтобы Spring Cloud Config знал какаую службу искать
+  profiles:
+    active: dev
+  config:
+    import:
+      # Местоположение службы Spring Cloud Config Server
+      configserver:http://localhost:8071

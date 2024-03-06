@@ -1,5 +1,7 @@
-version: '2.1'
+version: '3.7'
+
 services:
+  # foreign images
   database:
     image: postgres:latest
     ports:
@@ -7,31 +9,42 @@ services:
     environment:
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "postgres"
-      POSTGRES_DB:       "ostock_dev"
+      POSTGRES_DB: "ostock_dev"
     volumes:
-        - ./init.sql:/docker-entrypoint-initdb.d/1-init.sql
-        - ./data.sql:/docker-entrypoint-initdb.d/2-data.sql
+      - ./init.sql:/docker-entrypoint-initdb.d/1-init.sql
+      - ./data.sql:/docker-entrypoint-initdb.d/2-data.sql
     networks:
       backend:
         aliases:
           - "database"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
   configserver:
-    image: ostock/configserver:0.0.1-SNAPSHOT
+    # По идее должны собирать образ и пушить его в хаб и из него собирать, но легче руками все сделать
+#    image: ostock/configserver:0.0.1-SNAPSHOT
+    container_name: configserver
+    # licensingservice app path
+    build:
+      context: ../configserver
+      dockerfile: Dockerfile
+    image: configserver:0.0.1-SNAPSHOT
     ports:
        - "8071:8071"
     environment:
-      ENCRYPT_KEY: "fje83Ki8403Iod87dne7Yjsl3THueh48jfuO9j4U2hf64Lo"
+      ENCRYPT_KEY: "IMSYMMETRIC"
     networks:
       backend:
         aliases:
           - "configserver"
   licensingservice:
-    image: ostock/licensing-service:0.0.2-SNAPSHOT
+    # image: ostock/licensing-service:0.0.2-SNAPSHOT
+    build:
+      context: ../licensing-service
+      dockerfile: Dockerfile
+    image: licensing-service:0.0.1-SNAPSHOT
     environment:
       PROFILE: "dev"
       CONFIGSERVER_URI: "http://configserver:8071"

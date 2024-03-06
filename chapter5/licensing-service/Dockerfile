@@ -1,31 +1,24 @@
-#stage 1
-#Start with a base image containing Java runtime
-FROM openjdk:11-slim as build
+# Multi-layer build 
 
-# Add Maintainer Info
-LABEL maintainer="Illary Huaylupo <illaryhs@gmail.com>"
+# Stage #1
+FROM openjdk:21-slim as build
+LABEL maintainer="deds129 <deds129@gmail.com>"
 
-# The application's jar file
-ARG JAR_FILE
+WORKDIR configserver_application
+ARG JAR_FILE=target/*.jar
+COPY ${JAR_FILE} configserver.jar
+RUN java -Djarmode=layertools -jar configserver.jar extract
 
-# Add the application's jar to the container
-COPY ${JAR_FILE} app.jar
-
-#unpackage jar file
-RUN mkdir -p target/dependency && (cd target/dependency; jar -xf /app.jar)
-
-#stage 2
-#Same Java runtime
-FROM openjdk:11-slim
+# Stage #2
+FROM openjdk:21-slim
+WORKDIR configserver_application
 
 #Add volume pointing to /tmp
 VOLUME /tmp
 
-#Copy unpackaged application to new container
-ARG DEPENDENCY=/target/dependency
-COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
-COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
-COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
+COPY --from=build configserver_application/dependencies/ ./
+COPY --from=build configserver_application/spring-boot-loader/ ./
+COPY --from=build configserver_application/snapshot-dependencies/ ./
+COPY --from=build configserver_application/application/ ./
 
-#execute the application
-ENTRYPOINT ["java","-cp","app:app/lib/*","com.optimagrowth.license.LicenseServiceApplication"]
+ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
